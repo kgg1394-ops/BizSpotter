@@ -2,180 +2,216 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>BizSpotter Pro | 의료 인프라 분석 시스템</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>메디컬 입지 분석 - 전국 통합 시스템</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap" rel="stylesheet">
+    <script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=YOUR_CLIENT_ID&submodules=geocoding"></script>
     <style>
-        body { font-family: 'Pretendard', sans-serif; overflow: hidden; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap');
+        body { font-family: 'Pretendard', sans-serif; background-color: #f1f5f9; color: #1e293b; }
+        .card { background: white; border-radius: 1rem; border: 1px solid #e2e8f0; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .data-label { color: #64748b; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+        #map { width: 100%; height: 380px; border-radius: 1rem; border: 1px solid #e2e8f0; }
+        .scroll-style::-webkit-scrollbar { width: 5px; }
+        .scroll-style::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 h-screen overflow-hidden flex flex-col">
+<body class="p-4 md:p-8">
 
-    <header class="h-20 bg-white border-b flex items-center justify-between px-10 shrink-0 shadow-sm z-10">
-        <h1 class="text-2xl font-bold text-indigo-600 italic flex items-center gap-2">
-            <i data-lucide="shield-check"></i> BizSpotter Pro
-        </h1>
-        <div id="status" class="flex items-center gap-2 text-sm font-bold text-slate-400">
-            <span class="w-2 h-2 bg-slate-300 rounded-full animate-pulse"></span> 데이터 로드 대기 중
-        </div>
-    </header>
-
-    <main class="flex-1 overflow-y-auto p-6 md:p-10 bg-slate-50">
-        <div class="max-w-6xl mx-auto space-y-8">
-            
-            <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-200">
-                <h3 class="font-bold text-lg mb-6 flex items-center gap-2">
-                    <i data-lucide="settings-2" size="20" class="text-indigo-500"></i> 분석 가중치 설정 (%)
-                </h3>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                    <div class="space-y-2">
-                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">소아청소년과</label>
-                        <input type="number" id="w_ped" value="40" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:ring-2 ring-indigo-500 outline-none">
-                    </div>
-                    <div class="space-y-2">
-                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">치과(의원/병원)</label>
-                        <input type="number" id="w_den" value="20" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:ring-2 ring-indigo-500 outline-none">
-                    </div>
-                    <div class="space-y-2">
-                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">약국</label>
-                        <input type="number" id="w_pha" value="20" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:ring-2 ring-indigo-500 outline-none">
-                    </div>
-                    <div class="space-y-2">
-                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">종합/상급병원</label>
-                        <input type="number" id="w_hos" value="20" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold focus:ring-2 ring-indigo-500 outline-none">
-                    </div>
-                </div>
-                <button onclick="updateAnalysis()" class="mt-8 w-full py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-indigo-600 transition-all shadow-lg active:scale-[0.98]">
-                    분석 결과 업데이트
-                </button>
+    <div class="max-w-7xl mx-auto space-y-6">
+        
+        <header class="card bg-slate-900 text-white border-none shadow-2xl flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="text-center md:text-left">
+                <h1 class="text-2xl font-bold mb-1 italic">NATIONAL MEDICAL ANALYSIS</h1>
+                <p id="view-source" class="text-xs text-slate-400">2026.03 심평원/행안부/복지부 통합 데이터</p>
             </div>
+            <div class="flex flex-wrap justify-center gap-3">
+                <select id="sidoSelect" onchange="updateSggOptions()" class="bg-slate-800 text-white border border-slate-700 px-4 py-2 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">시/도 선택</option>
+                </select>
+                <select id="sggSelect" onchange="updateDashboard()" class="bg-slate-800 text-white border border-slate-700 px-4 py-2 rounded-lg text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">시/군/구 선택</option>
+                </select>
+                <select id="deptSelect" onchange="updateDashboard()" class="bg-blue-600 text-white border-none px-4 py-2 rounded-lg text-sm font-bold outline-none ring-2 ring-blue-400">
+                    <option value="">진료과 선택</option>
+                </select>
+            </div>
+        </header>
 
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                <div class="lg:col-span-5 bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm flex flex-col h-[500px]">
-                    <h4 class="font-bold text-lg mb-6 flex items-center gap-2">
-                        <i data-lucide="award" class="text-amber-500"></i> 의료 안심 입지 TOP 10
-                    </h4>
-                    <div id="rankList" class="space-y-4 overflow-y-auto flex-1 pr-2 custom-scroll">
-                        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 card p-2">
+                <div id="map"></div>
+            </div>
+            <div class="space-y-4">
+                <div class="card bg-blue-600 text-white border-none">
+                    <p class="data-label text-blue-200">해당 지역 의원수</p>
+                    <p id="clinic-count" class="text-4xl font-black mt-2">0</p>
+                    <p class="text-xs mt-2 opacity-80" id="selected-dept-label">진료과를 선택하세요</p>
                 </div>
-
-                <div class="lg:col-span-7 bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm h-[500px] flex flex-col">
-                    <h4 class="font-bold text-lg mb-6 flex items-center gap-2">
-                        <i data-lucide="bar-chart-3" class="text-indigo-500"></i> 지역별 지수 비교
-                    </h4>
-                    <div class="flex-1 relative">
-                        <canvas id="scoreChart"></canvas>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="card text-center p-4">
+                        <p class="data-label">평균 업력</p>
+                        <p id="avg-duration" class="text-lg font-bold mt-1">-</p>
                     </div>
+                    <div class="card text-center p-4">
+                        <p class="data-label">주거 인구</p>
+                        <p id="pop-count" class="text-lg font-bold mt-1">0</p>
+                    </div>
+                </div>
+                <div class="card text-center p-4">
+                    <p class="data-label">세대당 인구</p>
+                    <p id="household-ratio" class="text-lg font-bold mt-1">-</p>
                 </div>
             </div>
-
         </div>
-    </main>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="md:col-span-2 space-y-6">
+                <div class="card">
+                    <h3 class="font-bold mb-6 flex items-center gap-2">📈 진료비 및 청구 실적 <span class="text-xs font-normal text-slate-400">(전국 평균 기준)</span></h3>
+                    <div id="billing-grid" class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+                        <div><p class="data-label">청구건수</p><p id="bill-visits" class="font-bold text-slate-800">-</p></div>
+                        <div><p class="data-label">진료비(계)</p><p id="bill-amt" class="font-bold text-blue-600">-</p></div>
+                        <div><p class="data-label">최다 질환</p><p id="bill-disease" class="font-bold text-slate-800 text-xs">-</p></div>
+                        <div><p class="data-label">환자수(추정)</p><p id="bill-patients" class="font-bold text-slate-800">-</p></div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3 class="font-bold mb-4">⏳ 업력 분포 및 시장 성숙도</h3>
+                    <div class="h-48"><canvas id="durationChart"></canvas></div>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <div class="card bg-slate-50">
+                    <h3 class="font-bold mb-4">🏥 주변 의료 인프라</h3>
+                    <ul id="other-inst-list" class="space-y-3 text-sm">
+                        </ul>
+                </div>
+                <div class="card p-0 overflow-hidden border-blue-200">
+                    <div class="bg-blue-50 p-4 border-b border-blue-200 flex justify-between">
+                        <h3 class="font-bold text-blue-800 text-sm">📋 주요 의원 정보</h3>
+                        <span id="list-count" class="text-xs text-blue-600 font-bold"></span>
+                    </div>
+                    <div id="clinic-list" class="p-4 space-y-3 max-h-[400px] overflow-y-auto scroll-style">
+                        <p class="text-slate-400 text-xs text-center py-20">지역과 진료과를 선택하세요</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="text-center py-10 opacity-50 text-[10px]">
+            <p id="view-footer">-</p>
+        </footer>
+    </div>
 
     <script>
-        lucide.createIcons();
-        let masterData = [];
-        let scoreChart;
+        let db = null;
+        let map = null;
+        let chart = null;
 
-        // JSON 데이터 자동 로드
-        window.onload = async () => {
-            const statusEl = document.getElementById('status');
+        async function init() {
             try {
-                const response = await fetch('summary.json');
-                if(!response.ok) throw new Error("JSON 파일을 찾을 수 없습니다.");
-                const data = await response.json();
+                const res = await fetch('national_full_data.json');
+                db = await res.json();
                 
-                masterData = Object.entries(data).map(([name, counts]) => ({ name, ...counts }));
-                statusEl.innerHTML = '<span class="w-2 h-2 bg-green-500 rounded-full"></span> 데이터 동기화 완료';
-                statusEl.className = "flex items-center gap-2 text-sm font-bold text-green-600";
+                // 시도 및 진료과 옵션 초기화
+                populateSelect('sidoSelect', Object.keys(db.regions).sort());
+                populateSelect('deptSelect', db.departments);
                 
-                updateAnalysis();
-            } catch (err) {
-                statusEl.innerHTML = '<span class="w-2 h-2 bg-red-500 rounded-full"></span> JSON 로드 실패';
-                statusEl.className = "flex items-center gap-2 text-sm font-bold text-red-600";
-                console.error(err);
-            }
-        };
-
-        function updateAnalysis() {
-            if(masterData.length === 0) return;
-
-            const wp = parseFloat(document.getElementById('w_ped').value) || 0;
-            const wd = parseFloat(document.getElementById('w_den').value) || 0;
-            const wph = parseFloat(document.getElementById('w_pha').value) || 0;
-            const wh = parseFloat(document.getElementById('w_hos').value) || 0;
-            const totalWeight = wp + wd + wph + wh;
-
-            const maxs = {
-                ped: Math.max(...masterData.map(d => d.ped)) || 1,
-                den: Math.max(...masterData.map(d => d.den)) || 1,
-                pha: Math.max(...masterData.map(d => d.pha)) || 1,
-                hos: Math.max(...masterData.map(d => d.hos)) || 1
-            };
-
-            masterData.forEach(d => {
-                const s_ped = (d.ped / maxs.ped) * 100;
-                const s_den = (d.den / maxs.den) * 100;
-                const s_pha = (d.pha / maxs.pha) * 100;
-                const s_hos = (d.hos / maxs.hos) * 100;
-                d.totalScore = (s_ped*wp + s_den*wd + s_pha*wph + s_hos*wh) / (totalWeight || 1);
-            });
-
-            masterData.sort((a, b) => b.totalScore - a.totalScore);
-            renderUI();
+                document.getElementById('view-source').innerText = db.header.source;
+                
+                map = new naver.maps.Map('map', { center: new naver.maps.LatLng(37.5665, 126.9780), zoom: 11 });
+            } catch (e) { console.error("Data Load Error", e); }
         }
 
-        function renderUI() {
-            // 랭킹 리스트
-            const listEl = document.getElementById('rankList');
-            listEl.innerHTML = masterData.slice(0, 10).map((d, i) => `
-                <div class="p-5 bg-slate-50 rounded-[1.5rem] border border-slate-100 flex justify-between items-center hover:border-indigo-300 transition-all cursor-default group">
-                    <div>
-                        <span class="text-[10px] font-black text-indigo-400 uppercase tracking-tighter">Rank ${i+1}</span>
-                        <p class="font-bold text-slate-800">${d.name}</p>
+        function populateSelect(id, list) {
+            const el = document.getElementById(id);
+            list.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item; opt.innerText = item;
+                el.appendChild(opt);
+            });
+        }
+
+        function updateSggOptions() {
+            const sido = document.getElementById('sidoSelect').value;
+            const sggSelect = document.getElementById('sggSelect');
+            sggSelect.innerHTML = '<option value="">시/군/구 선택</option>';
+            if (sido && db.regions[sido]) {
+                db.regions[sido].forEach(sgg => {
+                    const opt = document.createElement('option');
+                    opt.value = sgg; opt.innerText = sgg;
+                    sggSelect.appendChild(opt);
+                });
+            }
+        }
+
+        function updateDashboard() {
+            const sido = document.getElementById('sidoSelect').value;
+            const sgg = document.getElementById('sggSelect').value;
+            const dept = document.getElementById('deptSelect').value;
+            
+            if (!sido || !sgg || !dept) return;
+
+            const sggKey = `${sido} ${sgg}`;
+            const sggInfo = db.sgg_data[sggKey];
+            const deptInfo = sggInfo && sggInfo.depts[dept] ? sggInfo.depts[dept] : { count: 0, avg_duration: '-', clinics: [] };
+            const billInfo = db.billing_defaults[dept] || {};
+
+            // 1. 핵심 수치 업데이트
+            document.getElementById('clinic-count').innerText = deptInfo.count + "개";
+            document.getElementById('avg-duration').innerText = deptInfo.avg_duration;
+            document.getElementById('pop-count').innerText = sggInfo ? sggInfo.pop.toLocaleString() + "명" : "0명";
+            document.getElementById('selected-dept-label').innerText = `선택된 진료과: ${dept}`;
+            
+            if (sggInfo && sggInfo.households > 0) {
+                document.getElementById('household-ratio').innerText = (sggInfo.pop / sggInfo.households).toFixed(2) + "명";
+            }
+
+            // 2. 진료비 통계
+            document.getElementById('bill-visits').innerText = billInfo.visits || "-";
+            document.getElementById('bill-amt').innerText = billInfo.billing_amt || "-";
+            document.getElementById('bill-disease').innerText = billInfo.top_disease || "-";
+            document.getElementById('bill-patients').innerText = billInfo.patients || "-";
+
+            // 3. 주변 의료 인프라
+            const instContainer = document.getElementById('other-inst-list');
+            if (sggInfo && sggInfo.other_inst) {
+                instContainer.innerHTML = sggInfo.other_inst.map(i => `
+                    <li class="flex justify-between border-b border-slate-200 pb-1">
+                        <span class="text-slate-500">${i.label}</span><b class="text-slate-800">${i.value}개</b>
+                    </li>
+                `).join('');
+            }
+
+            // 4. 의원 리스트
+            const listContainer = document.getElementById('clinic-list');
+            document.getElementById('list-count').innerText = `TOP ${deptInfo.clinics.length}`;
+            listContainer.innerHTML = deptInfo.clinics.map(c => `
+                <div class="p-3 border border-slate-100 rounded-lg bg-white">
+                    <div class="flex justify-between text-[9px] font-bold text-blue-600 mb-1">
+                        <span>업력 ${c.duration}</span>
+                        <span class="text-slate-400">개원: ${c.openDate}</span>
                     </div>
-                    <div class="text-right">
-                        <p class="text-xl font-black text-indigo-600 group-hover:scale-110 transition-transform">${d.totalScore.toFixed(1)}</p>
-                    </div>
+                    <p class="text-sm font-bold truncate">${c.name}</p>
+                    <p class="text-[10px] text-slate-500 truncate">${c.address}</p>
                 </div>
             `).join('');
 
-            // 차트
-            const ctx = document.getElementById('scoreChart').getContext('2d');
-            if(scoreChart) scoreChart.destroy();
-            
-            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-            gradient.addColorStop(0, '#6366f1');
-            gradient.addColorStop(1, '#a855f7');
-
-            scoreChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: masterData.slice(0, 10).map(d => d.name),
-                    datasets: [{
-                        label: '안심 지수',
-                        data: masterData.slice(0, 10).map(d => d.totalScore),
-                        backgroundColor: gradient,
-                        borderRadius: 12,
-                        barThickness: 30
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { beginAtZero: true, max: 100, grid: { color: '#f1f5f9' } },
-                        x: { grid: { display: false } }
-                    }
+            // 5. 지도 이동
+            naver.maps.Service.geocode({ query: sggKey }, (status, response) => {
+                if (status === naver.maps.Service.Status.OK) {
+                    const addr = response.v2.addresses[0];
+                    map.setCenter(new naver.maps.LatLng(addr.y, addr.x));
+                    map.setZoom(13);
                 }
             });
         }
+
+        window.onload = init;
     </script>
 </body>
-
 </html>
