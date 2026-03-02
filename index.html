@@ -2,86 +2,144 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>의료 입지 분석 리포트 - MEDICAL LOCUS PRO</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;800&display=swap');
         body { font-family: 'Pretendard', sans-serif; background: #f8fafc; color: #1e293b; }
-        .card { background: white; border-radius: 1.5rem; padding: 2rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
-        select { border-radius: 0.75rem; border: none; padding: 0.5rem 1.25rem; font-weight: 700; cursor: pointer; }
+        .card { background: white; border-radius: 1.5rem; padding: 2.2rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+        .grade-badge { padding: 0.25rem 0.8rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 800; display: inline-block; }
+        select { border-radius: 0.8rem; border: none; padding: 0.5rem 1.3rem; font-weight: 700; cursor: pointer; background: #1e293b; color: white; transition: all 0.2s; }
+        select:hover { background: #334155; }
         .custom-scroll::-webkit-scrollbar { width: 6px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .stat-label { font-size: 11px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; }
     </style>
 </head>
 <body class="p-6 md:p-12">
 
     <div class="max-w-6xl mx-auto space-y-8">
-        <header class="card bg-slate-900 text-white flex flex-wrap justify-between items-center gap-6 border-none">
+        <header class="card bg-slate-900 text-white flex flex-wrap justify-between items-center gap-6 border-none shadow-2xl">
             <div>
                 <h1 class="text-2xl font-black italic tracking-tighter uppercase text-blue-400">Medical Locus PRO</h1>
-                <p class="text-[10px] text-slate-400 font-bold tracking-widest uppercase mt-1">주소 정밀 분석 기반 입지 리포트</p>
+                <p class="text-[10px] text-slate-400 font-bold tracking-widest uppercase mt-1">데이터 기반 정밀 입지 분석 시스템</p>
             </div>
             <div class="flex flex-wrap gap-2">
-                <select id="sido" onchange="updateSgg()" class="bg-slate-800 text-white text-sm hover:bg-slate-700 transition-all"><option value="">시/도</option></select>
-                <select id="sgg" onchange="updateDong()" class="bg-slate-800 text-white text-sm hover:bg-slate-700 transition-all"><option value="">시/군/구</option></select>
-                <select id="dong" onchange="render()" class="bg-slate-800 text-white text-sm hover:bg-slate-700 transition-all"><option value="">법정동(전체)</option></select>
-                <select id="dept" onchange="render()" class="bg-blue-600 text-white text-sm hover:bg-blue-500 transition-all"><option value="">진료과 선택</option></select>
+                <select id="sido" onchange="updateSgg()"><option value="">시/도</option></select>
+                <select id="sgg" onchange="updateDong()"><option value="">시/군/구</option></select>
+                <select id="dong" onchange="render()"><option value="">법정동(전체)</option></select>
+                <select id="dept" onchange="render()" class="bg-blue-600 hover:bg-blue-500"><option value="">진료과 선택</option></select>
             </div>
         </header>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="md:col-span-2 card bg-white shadow-xl flex flex-col justify-between">
+            <div class="md:col-span-2 card flex flex-col justify-between shadow-xl">
                 <div>
                     <p class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">입지 분석 핵심 지표</p>
                     <div class="flex items-baseline gap-4">
                         <span id="dept-label" class="text-sm font-black bg-blue-50 text-blue-600 px-3 py-1 rounded-lg">-</span>
-                        <h2 id="area-label" class="text-2xl font-black text-slate-800">-</h2>
+                        <h2 id="area-label" class="text-2xl font-black text-slate-800">지역을 선택하세요</h2>
                     </div>
                 </div>
                 
-                <div class="grid grid-cols-3 gap-8 mt-10 text-center border-t border-slate-50 pt-8">
+                <div class="grid grid-cols-3 gap-8 mt-12 text-center border-t border-slate-50 pt-8">
                     <div>
-                        <p class="text-[11px] text-slate-400 font-black mb-1">경쟁 강도</p>
+                        <p class="stat-label">경쟁 강도</p>
                         <p id="v-competition" class="text-3xl font-black text-red-500">-</p>
                         <p class="text-[9px] text-slate-300 mt-1">인구 1만명당 의원수</p>
                     </div>
                     <div class="border-x border-slate-100">
-                        <p class="text-[11px] text-slate-400 font-black mb-1">의원 수</p>
+                        <p class="stat-label">의원 수</p>
                         <p id="count" class="text-3xl font-black text-slate-900">-</p>
-                        <p class="text-[9px] text-slate-300 mt-1">선택 지역 내 현황</p>
+                        <p class="text-[9px] text-slate-300 mt-1">구역 내 동일과목 수</p>
                     </div>
                     <div>
-                        <p class="text-[11px] text-slate-400 font-black mb-1">입지 점수</p>
+                        <p class="stat-label">입지 점수</p>
                         <p id="v-score" class="text-4xl font-black text-blue-600">-</p>
-                        <p class="text-[9px] text-slate-300 mt-1">시장 매력도 평가</p>
+                        <p class="text-[9px] text-slate-300 mt-1 italic font-bold" id="v-grade">데이터 분석 중</p>
                     </div>
                 </div>
             </div>
 
             <div class="space-y-6">
                 <div class="card p-8 bg-slate-50 border-none shadow-md">
-                    <div class="space-y-5">
-                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-500">거주 인구</span><span id="pop" class="text-xl font-black text-slate-800">0</span></div>
-                        <div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-500">세대 수</span><span id="households" class="text-xl font-black text-slate-800">0</span></div>
-                        <div class="pt-5 border-t border-slate-200 flex justify-between items-center"><span class="text-xs font-bold text-slate-500">평균 업력</span><span id="duration" class="text-lg font-black text-blue-600">-</span></div>
+                    <div class="space-y-6">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold text-slate-500">거주 인구</span>
+                            <span id="pop" class="text-xl font-black text-slate-800">0</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold text-slate-500">세대 수</span>
+                            <span id="households" class="text-xl font-black text-slate-800">0</span>
+                        </div>
+                        <div class="pt-6 border-t border-slate-200 flex justify-between items-center">
+                            <span class="text-xs font-bold text-slate-500">평균 업력</span>
+                            <span id="duration" class="text-lg font-black text-blue-600">-</span>
+                        </div>
                     </div>
                 </div>
-                <div class="card p-6 bg-blue-600 text-white border-none text-center"><p class="text-[11px] font-bold opacity-70 mb-1">반경 1km 경쟁권 추정</p><p id="v-radius" class="text-3xl font-black">-</p></div>
+                <div class="card p-6 bg-blue-600 text-white border-none text-center shadow-lg">
+                    <p class="text-[11px] font-bold opacity-70 mb-1">반경 1km 경쟁권 추정</p>
+                    <p id="v-radius" class="text-3xl font-black">-</p>
+                </div>
             </div>
         </div>
 
-        <section class="card border-t-8 border-t-blue-500">
-            <h2 class="text-lg font-black mb-10 text-slate-800">📊 시장 성과 추정 분석</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
-                <div><p class="text-xs text-slate-400 font-black mb-2">예상 내원 건수</p><p id="v-visits" class="text-2xl font-black text-slate-800">-</p></div>
-                <div class="border-x border-slate-100 px-4"><p class="text-xs text-slate-400 font-black mb-2">예상 진료비 매출</p><p id="v-amt" class="text-2xl font-black text-blue-600">-</p></div>
-                <div><p class="text-xs text-slate-400 font-black mb-2 text-orange-500">예상 환자 수</p><p id="v-patients" class="text-2xl font-black text-orange-600">-</p></div>
+        <section class="card bg-slate-50 border-none">
+            <h3 class="text-sm font-black text-slate-800 mb-6 flex items-center gap-2">
+                <span class="w-2 h-5 bg-blue-600 rounded-full"></span> 입지 점수 등급별 해석 및 전략 가이드
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <span class="grade-badge bg-blue-100 text-blue-700">90점 이상</span>
+                    <p class="font-black mt-3 text-slate-800 text-lg">최우수 (블루오션)</p>
+                    <p class="text-[11px] text-slate-500 mt-2 leading-relaxed">인구 대비 의원이 압도적으로 적습니다. 선점 효과가 매우 크며 신속한 개원이 유리합니다.</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <span class="grade-badge bg-green-100 text-green-700">70 ~ 89점</span>
+                    <p class="font-black mt-3 text-slate-800 text-lg">우수 (안정권)</p>
+                    <p class="text-[11px] text-slate-500 mt-2 leading-relaxed">수요와 공급의 밸런스가 좋습니다. 차별화된 인테리어와 특화 진료 서비스 전략이 필요합니다.</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <span class="grade-badge bg-yellow-100 text-yellow-700">50 ~ 69점</span>
+                    <p class="font-black mt-3 text-slate-800 text-lg">보통 (진입 주의)</p>
+                    <p class="text-[11px] text-slate-500 mt-2 leading-relaxed">경쟁이 치열합니다. 동일 동네 내에서도 주 동선이 겹치지 않는 틈새 입지 선정이 핵심입니다.</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm opacity-60">
+                    <span class="grade-badge bg-red-100 text-red-700">50점 미만</span>
+                    <p class="font-black mt-3 text-slate-800 text-lg">주의 (레드오션)</p>
+                    <p class="text-[11px] text-slate-500 mt-2 leading-relaxed">의원이 과포화 상태입니다. 독보적인 전문성이나 대규모 홍보 없이는 위험 부담이 큽니다.</p>
+                </div>
             </div>
         </section>
 
-        <section class="card p-0 overflow-hidden border-slate-200">
-            <div class="bg-slate-900 px-10 py-6 text-white flex justify-between items-center"><h3 class="font-black text-[0.85rem] tracking-[0.3em]">📋 지역 의원 상세 명부</h3><span id="list-count" class="text-[10px] font-bold bg-blue-600 px-4 py-1.5 rounded-full uppercase">0개소</span></div>
-            <div id="list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 p-12 max-h-[800px] overflow-y-auto custom-scroll bg-white"></div>
+        <section class="card border-t-8 border-t-blue-500 shadow-2xl">
+            <h2 class="text-lg font-black mb-10 text-slate-800 flex items-center gap-2">📊 실시간 시장 성과 추정 리포트</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
+                <div>
+                    <p class="stat-label">예상 내원 건수</p>
+                    <p id="v-visits" class="text-2xl font-black text-slate-800">-</p>
+                </div>
+                <div class="border-x border-slate-100 px-4">
+                    <p class="stat-label">예상 진료비 매출</p>
+                    <p id="v-amt" class="text-2xl font-black text-blue-600">-</p>
+                </div>
+                <div>
+                    <p class="stat-label">예상 실제 환자 수</p>
+                    <p id="v-patients" class="text-2xl font-black text-orange-600">-</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="card p-0 overflow-hidden border-slate-200 shadow-2xl">
+            <div class="bg-slate-900 px-10 py-6 text-white flex justify-between items-center">
+                <h3 class="font-black text-[0.85rem] tracking-[0.3em]">📋 지역 의원 상세 명부</h3>
+                <span id="list-count" class="text-[10px] font-bold bg-blue-600 px-4 py-1.5 rounded-full uppercase">0개소</span>
+            </div>
+            <div id="list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 p-12 max-h-[800px] overflow-y-auto custom-scroll bg-white text-center">
+                <p class="col-span-full text-slate-300 font-black italic text-sm py-10">상단 필터를 사용하여 분석을 시작하십시오.</p>
+            </div>
         </section>
     </div>
 
@@ -91,55 +149,100 @@
             try {
                 const res = await fetch('national_full_data.json');
                 db = await res.json();
+                
                 const sidoSelect = document.getElementById('sido');
-                Object.keys(db.지역).sort().forEach(s => { const opt = document.createElement('option'); opt.value = s; opt.innerText = s; sidoSelect.appendChild(opt); });
+                Object.keys(db.지역).sort().forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s; opt.innerText = s;
+                    sidoSelect.appendChild(opt);
+                });
+
                 const deptSelect = document.getElementById('dept');
-                db.진료과.forEach(d => { const opt = document.createElement('option'); opt.value = d; opt.innerText = d; deptSelect.appendChild(opt); });
-            } catch (e) { alert("데이터 로드 실패: Live Server를 사용하세요."); }
+                db.진료과.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d; opt.innerText = d;
+                    deptSelect.appendChild(opt);
+                });
+            } catch (e) {
+                alert("JSON 데이터를 로드할 수 없습니다. Live Server로 열어주세요.");
+            }
         }
 
         function updateSgg() {
-            const s = document.getElementById('sido').value; const sggSelect = document.getElementById('sgg');
+            const s = document.getElementById('sido').value;
+            const sggSelect = document.getElementById('sgg');
             sggSelect.innerHTML = '<option value="">시/군/구</option>';
-            if (s && db.지역[s]) Object.keys(db.지역[s]).sort().forEach(g => { const opt = document.createElement('option'); opt.value = g; opt.innerText = g; sggSelect.appendChild(opt); });
+            if (s && db.지역[s]) {
+                Object.keys(db.지역[s]).sort().forEach(g => {
+                    const opt = document.createElement('option');
+                    opt.value = g; opt.innerText = g;
+                    sggSelect.appendChild(opt);
+                });
+            }
         }
 
         function updateDong() {
-            const s = document.getElementById('sido').value; const g = document.getElementById('sgg').value;
+            const s = document.getElementById('sido').value;
+            const g = document.getElementById('sgg').value;
             const dongSelect = document.getElementById('dong');
             dongSelect.innerHTML = '';
-            if (s && g && db.지역[s][g]) db.지역[s][g].forEach(d => { const opt = document.createElement('option'); opt.value = d; opt.innerText = d; dongSelect.appendChild(opt); });
+            if (s && g && db.지역[s][g]) {
+                db.지역[s][g].forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d; opt.innerText = d;
+                    dongSelect.appendChild(opt);
+                });
+            }
         }
 
         function render() {
-            const si = document.getElementById('sido').value; const sg = document.getElementById('sgg').value;
-            const dg = document.getElementById('dong').value; const de = document.getElementById('dept').value;
+            const si = document.getElementById('sido').value;
+            const sg = document.getElementById('sgg').value;
+            const dg = document.getElementById('dong').value;
+            const de = document.getElementById('dept').value;
+            
             if (!si || !sg || !dg || !de) return;
-            const key = `${si} ${sg} ${dg}`; const data = db.데이터[key];
-            const deptData = (data && data.depts[de]) ? data.depts[de] : { 의원수:0, 평균업력:'-', 명단:[], 경쟁강도:'0', 반경경쟁권:'0개', 입지점수:'0점', 예상내원건수:'0건', 예상매출액:'0원', 예상환자수:'0명' };
 
+            const key = `${si} ${sg} ${dg}`;
+            const data = db.데이터[key];
+            const d = (data && data.depts[de]) ? data.depts[de] : { 
+                의원수:0, 경쟁강도:'0', 입지점수:'0점', 반경경쟁권:'0개', 평균업력:'-', 예상내원건수:'0건', 예상매출액:'0원', 예상환자수:'0명', 명단:[] 
+            };
+
+            // 점수별 등급 텍스트 로직
+            const scoreVal = parseFloat(d.입지점수);
+            let gradeStr = "분석 대기";
+            if (scoreVal >= 90) gradeStr = "최우수 입지 (블루오션)";
+            else if (scoreVal >= 70) gradeStr = "우수 입지 (안정권)";
+            else if (scoreVal >= 50) gradeStr = "보통 입지 (진입주의)";
+            else gradeStr = "레드오션 (진입위험)";
+
+            // UI 텍스트 업데이트
             document.getElementById('area-label').innerText = `${sg} ${dg}`;
             document.getElementById('dept-label').innerText = de;
-            document.getElementById('v-competition').innerText = deptData.경쟁강도;
-            document.getElementById('v-radius').innerText = deptData.반경경쟁권;
-            document.getElementById('v-score').innerText = deptData.입지점수;
-            document.getElementById('count').innerText = deptData.의원수;
-            document.getElementById('duration').innerText = deptData.평균업력;
-            document.getElementById('pop').innerText = (data ? data.pop.toLocaleString() : "0") + "명";
-            document.getElementById('households').innerText = (data ? data.households.toLocaleString() : "0") + "세대";
-            document.getElementById('v-visits').innerText = deptData.예상내원건수;
-            document.getElementById('v-amt').innerText = deptData.예상매출액;
-            document.getElementById('v-patients').innerText = deptData.예상환자수;
-            document.getElementById('list-count').innerText = `${deptData.명단.length}개소`;
+            document.getElementById('v-competition').innerText = d.경쟁강도;
+            document.getElementById('v-radius').innerText = d.반경경쟁권;
+            document.getElementById('v-score').innerText = d.입지점수;
+            document.getElementById('v-grade').innerText = gradeStr;
+            document.getElementById('count').innerText = d.의원수;
+            document.getElementById('duration').innerText = d.평균업력;
+            document.getElementById('pop').innerText = (data && data.pop ? data.pop.toLocaleString() : "0") + "명";
+            document.getElementById('households').innerText = (data && data.households ? data.households.toLocaleString() : "0") + "세대";
+            document.getElementById('v-visits').innerText = d.예상내원건수;
+            document.getElementById('v-amt').innerText = d.예상매출액;
+            document.getElementById('v-patients').innerText = d.예상환자수;
+            document.getElementById('list-count').innerText = `${d.명단.length}개소`;
 
-            document.getElementById('list').innerHTML = deptData.명단.map(c => `
-                <div class="p-8 border border-slate-100 rounded-[2rem] bg-white hover:border-blue-400 hover:shadow-lg transition-all group">
-                    <p class="text-blue-600 font-bold text-[10px] mb-2 uppercase">업력: ${c.업력}</p>
-                    <p class="font-black text-slate-800 text-xl mb-3 leading-tight group-hover:text-blue-600">${c.이름}</p>
-                    <p class="text-[0.75rem] text-slate-400 font-medium">${c.주소}</p>
+            // 명단 렌더링
+            document.getElementById('list').innerHTML = d.명단.map(c => `
+                <div class="p-8 border border-slate-100 rounded-[2rem] bg-white hover:border-blue-400 hover:shadow-xl transition-all group text-left">
+                    <p class="text-blue-600 font-bold text-[10px] mb-2 uppercase tracking-tighter">운영 업력: ${c.업력}</p>
+                    <p class="font-black text-slate-800 text-xl mb-3 leading-tight group-hover:text-blue-600 transition-colors">${c.이름}</p>
+                    <p class="text-[0.7rem] text-slate-400 truncate">${c.주소}</p>
                 </div>
-            `).join('') || '<p class="col-span-full text-center py-20 text-slate-300 font-bold">데이터가 없습니다.</p>';
+            `).join('') || '<p class="col-span-full text-center py-20 text-slate-300 font-black italic">해당 조건에 부합하는 의원이 없습니다.</p>';
         }
+
         window.onload = init;
     </script>
 </body>
